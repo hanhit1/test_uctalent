@@ -1,65 +1,101 @@
-import Image from "next/image";
+'use client'
+
+import PlaceIDFetchBar from "@/components/dashboard/PlaceIDFetchBar";
+import ReviewCard from "@/components/dashboard/ReviewCard";
+import { Button } from "@/components/ui/button";
+import { Review } from "@/types/review";
+import { ChevronLeftIcon, ChevronRightIcon, NavigationIcon } from "lucide-react";
+import { useState } from "react";
+
+const SAMPLE_REVIEWS: Review[] = [
+  {
+    id: '1',
+    reviewerName: 'Nguyễn Văn A',
+    reviewerInitials: 'NA',
+    date: 'May 20, 2024',
+    rating: 5,
+    status: 'resolved',
+    reviewText: 'Khách sạn rất sạch sẽ, nhân viên thân thiện, phục vụ tuyệt vời. Tôi sẽ quay lại lần nữa!',
+    approvedReply: 'Cảm ơn bạn rất nhiều! Chúng tôi rất vui khi bạn hài lòng với dịch vụ của chúng tôi.'
+  },
+  {
+    id: '2',
+    reviewerName: 'Trần Thị B',
+    reviewerInitials: 'TB',
+    date: 'May 18, 2024',
+    rating: 3,
+    status: 'pending',
+    reviewText: 'Phòng ốc còn hơi nhỏ và tiếng ồn từ đường phố vào phòng. Nhân viên tuy vui vẻ nhưng chậm trong việc phục vụ.'
+  },
+  {
+    id: '3',
+    reviewerName: 'Lê Văn C',
+    reviewerInitials: 'LC',
+    date: 'May 15, 2024',
+    rating: 4,
+    status: 'pending',
+    reviewText: 'Vị trí tuyệt vời, gần các điểm du lịch. Bữa sáng ngon lành. Chỉ tấm nệm hơi cứng so với mong đợi.'
+  },
+  {
+    id: '4',
+    reviewerName: 'Phạm Minh D',
+    reviewerInitials: 'PD',
+    date: 'May 10, 2024',
+    rating: 5,
+    status: 'resolved',
+    reviewText: 'Dịch vụ xuất sắc! Wifi nhanh, nước nóng đủ, air con mát mẻ. Giá cả phải chăng. Hẹn gặp lại!',
+    approvedReply: 'Cảm ơn bạn đã để lại đánh giá. Chúng tôi luôn cố gắng cải thiện dịch vụ.'
+  }
+]
 
 export default function Home() {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const handleFetchReviews = (placeId: string) => {
+    setIsLoading(true);
+    setReviews([]);
+    console.log('Fetching reviews...');
+    console.log('Place ID:', placeId);
+    setTimeout(() => {
+      setIsLoading(false);
+      setReviews(SAMPLE_REVIEWS);
+    }, 1000);
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="container mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+      <div className="space-y-6">
+        <PlaceIDFetchBar onFetch={handleFetchReviews} isLoading={isLoading} />
+
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-lg font-medium text-primary">Reviews</div>
+          <div className="text-lg font-medium text-primary">Total Reviews: {reviews.length}</div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+
+        {reviews.length > 0 ? (
+          <div className="space-y-4">
+          {reviews.map((review) => (
+            <ReviewCard key={review.id} {...review} />
+          ))}
+          </div>
+        ) : (
+          <div className="text-center text-lg font-medium text-muted-foreground">Không có review nào</div>
+        )}
+        <div className="flex items-center justify-end gap-2">
+          <Button variant="outline" className="bg-primary hover:bg-primary/60">
+             <ChevronLeftIcon
+               size={24}
+               color="white"
+             />
+          </Button>
+          <Button variant="outline" className="bg-primary hover:bg-primary/60">
+            <ChevronRightIcon
+              size={24}
+              color="white"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </Button>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
