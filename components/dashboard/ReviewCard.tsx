@@ -4,6 +4,7 @@ import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import AIReplySelector from "./AIReplySelector";
 import { Badge } from "../ui/badge";
+import { ReviewReply } from "@/types/reviewReply";
 interface ReviewCardProps {
   id: string;
   reviewerName: string;
@@ -12,7 +13,7 @@ interface ReviewCardProps {
   rating: number;
   status: "pending" | "resolved";
   reviewText: string;
-  approvedReply?: string;
+  approvedReply?: ReviewReply;
 }
 
 export default function ReviewCard({
@@ -27,8 +28,9 @@ export default function ReviewCard({
 }: ReviewCardProps) {
   const [showReply, setShowReply] = useState(false);
   const [currentStatus, setCurrentStatus] = useState<string>(status);
-  const [replyText, setReplyText] = useState<string | undefined>(approvedReply);
+  const [replyText, setReplyText] = useState<string | undefined>(approvedReply?.replyText);
   const [isLoading, setIsLoading] = useState(false);
+  const [generatedReplies, setGeneratedReplies] = useState<ReviewReply[]>([]);
 
   const handleApproveReply = (replyType: string, replyText: string) => {
     setIsLoading(true);
@@ -42,8 +44,25 @@ export default function ReviewCard({
     setShowReply(false);
   };
 
-  const handleGenerateReply = () => {
-    setShowReply(true);
+  const handleGenerateReply = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/reviews/${id}/replies/generate`, {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        setIsLoading(false);
+        return;
+      }
+      const data = await response.json();
+      console.log(data);
+      setGeneratedReplies(data);
+      setShowReply(true);
+    } catch (error) {
+      console.error('Error generating reply:', error);
+    };
+
+    setIsLoading(false);
   };
 
   const stars = Array.from({ length: 5 }).map((_, i) => (
@@ -83,6 +102,7 @@ export default function ReviewCard({
         <div className="text-sm text-primary px-4">{reviewText}</div>
         {showReply ? (
           <AIReplySelector
+            replies={generatedReplies}
             onApprove={handleApproveReply}
             isLoading={isLoading}
             onCancel={handleCancelReply}

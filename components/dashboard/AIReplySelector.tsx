@@ -4,48 +4,45 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Label } from "../ui/label";
 import { Card } from "../ui/card";
 import { XIcon } from "lucide-react";
+import { ReviewReply, ReviewReplyType } from "@/types/reviewReply";
 
 interface AIReplySelectorProps {
-  onApprove: (replyType: string, replyText: string) => void;
+  replies: ReviewReply[];
+  onApprove: (replyType: ReviewReplyType, replyText: string) => void;
   isLoading: boolean;
   onCancel: () => void;
 }
 
-const REPLY_OPTIONS = [
+const replyTypes = [
   {
     id: "standard",
     label: "Tiêu chuẩn",
-    sampleText:
-      "Cảm ơn bạn đã để lại đánh giá. Chúng tôi luôn cố gắng cải thiện dịch vụ.",
   },
   {
     id: "friendly",
     label: "Thân thiện",
-    sampleText:
-      "Cảm ơn bạn rất nhiều! Chúng tôi rất vui khi bạn hài lòng với dịch vụ của chúng tôi.",
   },
   {
     id: "issue-fix",
-    label: "Khắc phục lỗi",
-    sampleText:
-      "Xin lỗi vì trải nghiệm không tốt. Chúng tôi sẽ giải quyết vấn đề này ngay lập tức.",
+    label: "Khắc phục",
   },
 ];
 
 export default function AIReplySelector({
+  replies,
   onApprove,
   isLoading,
   onCancel,
 }: AIReplySelectorProps) {
   const [selectedReply, setSelectedReply] = useState<string>("");
-  const selectedOption = REPLY_OPTIONS.find(
+  const selectedOption = replies.find(
     (option) => option.id === selectedReply,
   );
 
   const handleApprove = () => {
     if (!selectedOption) return;
 
-    onApprove(selectedOption.id, selectedOption.sampleText);
+    onApprove(selectedOption.replyType, selectedOption.replyText);
   };
 
   return (
@@ -58,7 +55,7 @@ export default function AIReplySelector({
       </div>
       <RadioGroup value={selectedReply} onValueChange={setSelectedReply}>
         <div className="space-y-3">
-          {REPLY_OPTIONS.map((option) => (
+          {replies.map((option) => (
             <div key={option.id} className="flex items-center gap-3">
               <RadioGroupItem
                 value={option.id}
@@ -69,9 +66,9 @@ export default function AIReplySelector({
                 htmlFor={option.id}
                 className="flex flex-1 cursor-pointer rounded-lg p-2 border border-border hover:border-primary"
               >
-                <div className="font-medium">{option.label}:</div>
+                <div className="font-medium min-w-20">{replyTypes.find(type => type.id === option.replyType)?.label}:</div>
                 <div className="text-xm text-primary">
-                  &quot;{option.sampleText}&quot;
+                  &quot;{option.replyText}&quot;
                 </div>
               </Label>
             </div>
@@ -82,7 +79,7 @@ export default function AIReplySelector({
         <Card className="p-4 border border-border rounded-lg shadow-sm">
           <div className="text-xs text-muted-foreground">Preview:</div>
           <div className="text-sm text-primary">
-            &quot;{selectedOption.sampleText}&quot;
+            &quot;{selectedOption.replyText}&quot;
           </div>
         </Card>
       )}
