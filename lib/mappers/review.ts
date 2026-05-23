@@ -5,11 +5,11 @@ export type ReviewRow = {
   id: string
   place_id: string
   reviewer_name: string
-  reviewer_initials: string
+  avatar_url: string
   review_date: string
   rating: number
   status: "pending" | "resolved"
-  review_text: string
+  review_text?: string | null
   approved_reply_id: string | null
   approvedReply?: ReviewReplyRow | ReviewReplyRow[] | null
   replyOptions?: ReviewReplyRow[] | null
@@ -36,11 +36,11 @@ export function toReview(row: ReviewRow): Review {
     id: row.id,
     placeId: row.place_id,
     reviewerName: row.reviewer_name,
-    reviewerInitials: row.reviewer_initials,
+    avatarUrl: row.avatar_url,
     date: row.review_date,
     rating: row.rating,
     status: row.status,
-    reviewText: row.review_text,
+    reviewText: row.review_text ?? "",
     approvedReply,
     replyOptions,
   }
@@ -49,16 +49,16 @@ export function toReview(row: ReviewRow): Review {
 export function toReviewInsert(review: {
   placeId: string
   reviewerName: string
-  reviewerInitials: string
+  avatarUrl: string
   date: string
   rating: number
-  reviewText: string
+  reviewText?: string | null
   status?: Review["status"]
 }) {
   return {
     place_id: review.placeId,
     reviewer_name: review.reviewerName,
-    reviewer_initials: review.reviewerInitials,
+    avatar_url: review.avatarUrl,
     review_date: review.date,
     rating: review.rating,
     review_text: review.reviewText,

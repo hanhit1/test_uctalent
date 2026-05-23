@@ -4,11 +4,11 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Label } from "../ui/label";
 import { Card } from "../ui/card";
 import { XIcon } from "lucide-react";
-import { ReviewReply, ReviewReplyType } from "@/types/reviewReply";
+import { ReviewReply} from "@/types/reviewReply";
 
 interface AIReplySelectorProps {
   replies: ReviewReply[];
-  onApprove: (replyType: ReviewReplyType, replyText: string) => void;
+  onApprove: (replyId: string) => void;
   isLoading: boolean;
   onCancel: () => void;
 }
@@ -42,7 +42,7 @@ export default function AIReplySelector({
   const handleApprove = () => {
     if (!selectedOption) return;
 
-    onApprove(selectedOption.replyType, selectedOption.replyText);
+    onApprove(selectedOption.id);
   };
 
   return (

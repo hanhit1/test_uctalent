@@ -35,7 +35,7 @@ export default function PlaceIDFetchBar({
             />
             <Button
               onClick={() => onFetch(placeId)}
-              disabled={isLoading}
+              disabled={isLoading || !placeId}
               className="hover:bg-primary/90 max-w-40 mx-auto sm:mx-0"
             >
               {isLoading ? "Fetching..." : "Fetch Reviews"}

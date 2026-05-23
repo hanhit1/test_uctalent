@@ -1,16 +1,16 @@
-import { ReviewReply, ReviewReplyType } from "@/types/reviewReply";
+import { ReviewReply, ReviewReplyOption } from "@/types/reviewReply";
 import { toReviewReply, toReviewReplyInsert } from "../mappers/reviewReply";
 import { createServerSupabase } from "../supabase/server";
 
 const reviewReplySelectQuery = "id, review_id, reply_type, reply_text";
 
-export const saveReviewReply = async (reviewId: string, replyType: ReviewReplyType, replyText: string): Promise<ReviewReply> => {
+export const saveReviewReply = async (reviewId: string, replies: ReviewReplyOption []): Promise<ReviewReply[]> => {
     const supabase = createServerSupabase();
     const { data, error } = await supabase.from('review_replies').insert(
-        toReviewReplyInsert(reviewId, replyType, replyText),
-    ).select(reviewReplySelectQuery).single();
+        replies.map(reply => toReviewReplyInsert(reviewId, reply.replyType, reply.replyText))
+    ).select(reviewReplySelectQuery);
     if (error) throw error;
-    return toReviewReply(data);
+    return data.map(toReviewReply);
 }
 
 export const getReviewReplies = async (reviewId: string): Promise<ReviewReply[]> => {

@@ -4,11 +4,13 @@ import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import AIReplySelector from "./AIReplySelector";
 import { Badge } from "../ui/badge";
+import { useToast } from "@/hooks/useToast";
+import { getApiErrorMessage, MESSAGES } from "@/lib/messages";
 import { ReviewReply } from "@/types/reviewReply";
 interface ReviewCardProps {
   id: string;
   reviewerName: string;
-  reviewerInitials: string;
+  avatarUrl: string;
   date: string;
   rating: number;
   status: "pending" | "resolved";
@@ -19,25 +21,50 @@ interface ReviewCardProps {
 export default function ReviewCard({
   id,
   reviewerName,
-  reviewerInitials,
+  avatarUrl,
   date,
   rating,
   status,
   reviewText,
   approvedReply,
 }: ReviewCardProps) {
+  const toast = useToast();
   const [showReply, setShowReply] = useState(false);
   const [currentStatus, setCurrentStatus] = useState<string>(status);
-  const [replyText, setReplyText] = useState<string | undefined>(approvedReply?.replyText);
+  const [reply, setApprovedReply] = useState<ReviewReply | undefined>(
+    approvedReply,
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [generatedReplies, setGeneratedReplies] = useState<ReviewReply[]>([]);
 
-  const handleApproveReply = (replyType: string, replyText: string) => {
-    setIsLoading(true);
-    setCurrentStatus("resolved");
-    setReplyText(replyText);
-    setIsLoading(false);
-    setShowReply(false);
+  const handleApproveReply = async (replyId: string) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/reviews/${id}/approve`, {
+        method: "PATCH",
+        body: JSON.stringify({ replyId }),
+      });
+      if (!response.ok) {
+        toast.error(
+          await getApiErrorMessage(response, MESSAGES.approveFailed),
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      const data = await response.json();
+      toast.success(MESSAGES.approveSuccess);
+
+      setCurrentStatus("resolved");
+      setApprovedReply(data.approvedReply);
+
+      setShowReply(false);
+    } catch (error) {
+      console.error("Error approving reply:", error);
+      toast.error(MESSAGES.networkError);
+    }
+
+      setIsLoading(false);
   };
 
   const handleCancelReply = () => {
@@ -48,19 +75,25 @@ export default function ReviewCard({
     try {
       setIsLoading(true);
       const response = await fetch(`/api/reviews/${id}/replies/generate`, {
-        method: 'POST',
+        method: "POST",
       });
       if (!response.ok) {
         setIsLoading(false);
+        toast.error(
+          await getApiErrorMessage(response, MESSAGES.generateFailed),
+        );
         return;
       }
+
       const data = await response.json();
-      console.log(data);
+      toast.success(MESSAGES.generateSuccess);
+
       setGeneratedReplies(data);
       setShowReply(true);
     } catch (error) {
-      console.error('Error generating reply:', error);
-    };
+      console.error("Error generating reply:", error);
+      toast.error(MESSAGES.networkError);
+    }
 
     setIsLoading(false);
   };
@@ -78,10 +111,9 @@ export default function ReviewCard({
           <div className="flex items-center gap-4">
             <Avatar className="size-10 border-2 border-primary">
               <AvatarImage
-                src={`https://ui-avatars.com/api/?name=${reviewerName}`
-            }
+                src={avatarUrl}
               />
-              <AvatarFallback>{reviewerInitials}</AvatarFallback>
+              <AvatarFallback>{reviewerName.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col gap-1">
               <div>{reviewerName}</div>
@@ -93,9 +125,19 @@ export default function ReviewCard({
           </div>
           <div className="text-sm text-primary flex items-center gap-2">
             {currentStatus === "pending" ? (
-              <Badge variant="outline" className="bg-primary text-primary-foreground">Pending</Badge>
+              <Badge
+                variant="outline"
+                className="bg-primary text-primary-foreground"
+              >
+                Pending
+              </Badge>
             ) : (
-              <Badge variant="outline" className="bg-accent text-accent-foreground">Resolved</Badge>
+              <Badge
+                variant="outline"
+                className="bg-accent text-accent-foreground"
+              >
+                Resolved
+              </Badge>
             )}
           </div>
         </div>
@@ -107,10 +149,10 @@ export default function ReviewCard({
             isLoading={isLoading}
             onCancel={handleCancelReply}
           />
-        ) : replyText ? (
+        ) : reply ? (
           <div className="px-4">
             <div className="text-sm text-primary">Approved Reply:</div>
-            <p className="text-sm text-primary">{replyText}</p>
+            <p className="text-sm text-primary">{reply.replyText}</p>
           </div>
         ) : null}
         {currentStatus === "pending" && !showReply && (
