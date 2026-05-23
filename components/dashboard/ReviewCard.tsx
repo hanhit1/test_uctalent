@@ -162,7 +162,7 @@ export default function ReviewCard({
               disabled={isLoading}
               className="bg-primary hover:bg-primary/60"
             >
-              Tạo phản hồi
+              Generate AI
             </Button>
           </div>
         )}
